@@ -12,7 +12,7 @@ Conference
  
 ## Description   
 This repo contains the supporting code for the paper: "Estimating the Probabilities of Causation with Deep Monotonic Twin Networks"
-by : REDUCTED
+by : Athanasios Vlontzos, Bernhard Kainz, Ciarán G. Lee
 
 
 
@@ -173,4 +173,10 @@ Twins Dataset
     parser.add_argument('--weight_1', type=float, default=1)
     parser.add_argument('--weight_2', type=float, default=1)
     parser.add_argument('--multiple_confounders', default=False, help='split confounders')
+```
+
+
+## Citation
+```
+TBD
 ```
