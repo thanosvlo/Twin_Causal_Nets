@@ -12,7 +12,7 @@ Conference
  
 ## Description   
 This repo contains the supporting code for the paper: "Estimating the Probabilities of Causation with Deep Monotonic Twin Networks"
-by : Athanasios Vlontzos, Bernhard Kainz, Ciarán G. Lee
+by : Athanasios Vlontzos, Bernhard Kainz, Ciaran Gilligan-Lee
 
 
 
@@ -175,8 +175,12 @@ Twins Dataset
     parser.add_argument('--multiple_confounders', default=False, help='split confounders')
 ```
 
-
 ## Citation
-```
-TBD
+
+``` @article{vlontzos2021estimating,
+  title={Estimating the probabilities of causation via deep monotonic twin networks},
+  author={Vlontzos, Athanasios and Kainz, Bernhard and Gilligan-Lee, Ciaran M},
+  journal={arXiv preprint arXiv:2109.01904},
+  year={2021}
+}
 ```
