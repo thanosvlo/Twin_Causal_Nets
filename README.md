@@ -177,7 +177,8 @@ Twins Dataset
 
 ## Citation
 
-``` @article{vlontzos2021estimating,
+``` 
+@article{vlontzos2021estimating,
   title={Estimating the probabilities of causation via deep monotonic twin networks},
   author={Vlontzos, Athanasios and Kainz, Bernhard and Gilligan-Lee, Ciaran M},
   journal={arXiv preprint arXiv:2109.01904},
