@@ -6,15 +6,14 @@ sys.path.append("../..")
 import numpy as np
 import tensorflow as tf
 import tensorflow_lattice as tfl
-from data.twin_data_metadata import cov_types
 
 
-def make_cat_calibrators(input, lattice_size, conf):
+def make_cat_calibrators(input, lattice_size, conf, buckets=3, monotonicities=None):
     calibrator = tfl.layers.CategoricalCalibration(
-        num_buckets=2,
+        num_buckets=buckets,
         output_min=0.0,
         output_max=lattice_size - 1.0,
-
+        monotonicities=monotonicities,
         # Initializes all outputs to (output_min + output_max) / 2.0.
         kernel_initializer='constant',
         name='{}_calib'.format(conf),
@@ -22,6 +21,20 @@ def make_cat_calibrators(input, lattice_size, conf):
 
     return calibrator
 
+def make_cat_calibrators_treat(data, lattice_size, units, name=None,buckets=3, monotonicity='none'):
+
+    calibrator = tfl.layers.CategoricalCalibration(
+        num_buckets=buckets,
+        output_min=0.0,
+        units=units,
+        output_max=lattice_size - 1.0,
+        monotonicities=monotonicity,
+        # Initializes all outputs to (output_min + output_max) / 2.0.
+        kernel_initializer='constant',
+        name=name,
+    )
+
+    return calibrator
 
 def make_calibrators(data, lattice_size, units, name=None, monotonicity='none'):
     try:
@@ -47,21 +60,22 @@ def make_calibrators(data, lattice_size, units, name=None, monotonicity='none'):
     )
     return calibrator
 
+
 def make_multiple_calibrators(confounders, params):
-    i = 2
+    candidate_lattice_size = params.lattice_sizes[2:]
     model_inputs = []
     lattice_inputs = []
-    for  conf in confounders.columns:
-        type = cov_types[conf]
+    for ii, conf in enumerate(confounders.columns):
+        # type = cov_types[conf]
         _input = tf.keras.layers.Input(shape=[1], name=conf)
         model_inputs.append(_input)
-        if type == 'cat':
-            calib = make_cat_calibrators(_input, params.lattice_sizes[i], conf)
-        else:
-            calib = make_calibrators(confounders[conf].values, params.lattice_sizes[i],
-                                       params.z_calib_units,
-                                       monotonicity=params.z_monotonicity[i - 2], name='{}_calib'.format(conf))(_input)
-        i += 1
+        # if type == 'cat':
+        #     calib = make_cat_calibrators(_input, params.lattice_sizes[i], conf)
+        # else:
+        calib = make_calibrators(confounders[conf].values, candidate_lattice_size[ii],
+                                 params.z_calib_units,
+                                 monotonicity=params.z_monotonicity[ii], name='{}_calib'.format(conf))(_input)
+
         lattice_inputs.append(calib)
 
     return model_inputs, lattice_inputs
@@ -73,18 +87,29 @@ def Twin_Net_with_Z_A(treatment, uy, confounders, params):
 
     a_input = tf.keras.layers.Input(shape=[1], name='A')
     model_inputs.append(a_input)
-    a_calibrator = make_calibrators(treatment.values, lattice_sizes[0], params.calib_units, monotonicity='increasing',
-                                    name='a_calib')(a_input)
+    if not params.cat_treat:
+        a_calibrator = make_calibrators(treatment.values, lattice_sizes[0], params.treat_calib_units,
+                                        monotonicity=params.treat_monotonicity,
+                                        name='a_calib')(a_input)
+    else:
+        a_calibrator = make_cat_calibrators_treat(treatment.values, lattice_sizes[0], params.treat_calib_units,
+                                        monotonicity=params.treat_monot,buckets=params.cat_buckets,
+                                        name='a_calib')(a_input)
 
     a_prime_input = tf.keras.layers.Input(shape=[1], name='A_prime')
     model_inputs.append(a_prime_input)
-    a_prime_calibrator = make_calibrators(treatment.values, lattice_sizes[0], params.calib_units,
-                                          monotonicity='increasing',
-                                          name='a_prime_calib')(a_prime_input)
+    if not params.cat_treat:
+        a_prime_calibrator = make_calibrators(treatment.values, lattice_sizes[0], params.treat_calib_units,
+                                              monotonicity=params.treat_monotonicity,
+                                              name='a_prime_calib')(a_prime_input)
+    else:
+        a_prime_calibrator = make_cat_calibrators_treat(treatment.values, lattice_sizes[0], params.treat_calib_units,
+                                              monotonicity=params.treat_monot,buckets=params.cat_buckets,
+                                              name='a_prime_calib')(a_prime_input)
 
     uy_input = tf.keras.layers.Input(shape=[1], name='Uy')
     model_inputs.append(uy_input)
-    uy_calibrator = make_calibrators(uy, lattice_sizes[1], params.hidden_dims, monotonicity=params.uy_monotonicity
+    uy_calibrator = make_calibrators(uy, lattice_sizes[1], params.uy_hidden_dims, monotonicity=params.uy_monotonicity
                                      , name='uy_name')(uy_input)
 
     if params.multiple_confounders:
@@ -111,63 +136,62 @@ def Twin_Net_with_Z_A(treatment, uy, confounders, params):
 
     # Uy layer
     if params.uy_layer == 'linear':
-        layer_uy = tfl.layers.Linear(1, units=params.calib_units, monotonicities=params.uy_monotonicity)(uy_calibrator)
+        layer_uy = tfl.layers.Linear(1, units=params.treat_calib_units, monotonicities=params.uy_monotonicity)(
+            uy_calibrator)
     else:
         layer_uy = uy_calibrator
 
-
     conc_a_z = tf.keras.layers.Concatenate()([a_calibrator, *layer_z])
     conc_a_prime_z = tf.keras.layers.Concatenate()([a_prime_calibrator, *layer_z])
-    layer_a_z = tfl.layers.Linear( np.sum([i.shape[-1] for i in layer_z]) +lattice_sizes[0], units=1, monotonicities='increasing')(conc_a_z)
-    layer_a_z_prime = tfl.layers.Linear(np.sum([i.shape[-1] for i in layer_z]) +lattice_sizes[0], units=1, monotonicities='increasing')(conc_a_prime_z)
+    layer_a_z = tfl.layers.Linear(np.sum([i.shape[-1] for i in layer_z]) + lattice_sizes[0], units=1,
+                                  monotonicities=params.treat_monotonicity)(conc_a_z)
+    layer_a_z_prime = tfl.layers.Linear(np.sum([i.shape[-1] for i in layer_z]) + lattice_sizes[0], units=1,
+                                        monotonicities=params.treat_monotonicity)(conc_a_prime_z)
 
-
-    if params.concats:
+    if params.layer == 'linear':
         conc_input = tf.keras.layers.Concatenate(axis=1)([layer_a_z, layer_uy, *layer_z])
-        conc_input_prime  = tf.keras.layers.Concatenate(axis=1)([layer_a_z_prime, layer_uy, *layer_z])
+        conc_input_prime = tf.keras.layers.Concatenate(axis=1)([layer_a_z_prime, layer_uy, *layer_z])
         lattice_y = tfl.layers.Linear(
-            np.sum([i.shape[-1] for i in layer_z]) + lattice_sizes[1]+1,
+            np.sum([i.shape[-1] for i in layer_z]) + lattice_sizes[1] + 1,
             units=params.lattice_units,
             monotonicities=
-                'increasing'
+            params.treat_monotonicity
             ,
-
 
             name='Y',
         )(conc_input)
 
         lattice_y_prime = tfl.layers.Linear(
-            np.sum([i.shape[-1] for i in layer_z])+ lattice_sizes[1] + 1,
+            np.sum([i.shape[-1] for i in layer_z]) + lattice_sizes[1] + 1,
             units=params.lattice_units,
             monotonicities=
-            'increasing'
+            params.treat_monotonicity
             ,
 
             name='Y_prime',
         )(conc_input_prime)
     else:
         lattice_y = tfl.layers.Lattice(
-            lattice_sizes=[2,*lattice_sizes[1:]],
+            lattice_sizes=[2, *lattice_sizes[1:]],
             units=params.lattice_units,
             monotonicities=[
-                'increasing', params.uy_monotonicity, *params.z_monotonicity
+                params.treat_monotonicity, params.uy_monotonicity, *params.z_monotonicity
             ],
-            output_min=0.0,
-            output_max=1.0,
+            output_min=params.target_min,
+            output_max=params.target_max,
             name='Y',
         )([layer_a_z, layer_uy, *layer_z])
 
         lattice_y_prime = tfl.layers.Lattice(
-            lattice_sizes=[2,*lattice_sizes[1:]],
+            lattice_sizes=[2, *lattice_sizes[1:]],
             units=params.lattice_units,
             monotonicities=[
-                'increasing', params.uy_monotonicity, *params.z_monotonicity
+                params.treat_monotonicity, params.uy_monotonicity, *params.z_monotonicity
             ],
-            output_min=0.0,
-            output_max=1.0,
+            output_min=params.target_min,
+            output_max=params.target_max,
             name='Y_prime',
         )([layer_a_z_prime, layer_uy, *layer_z])
-
 
     if params.end_activation == 'calib':
         lattice_y = tfl.layers.PWLCalibration(
@@ -187,6 +211,7 @@ def Twin_Net_with_Z_A(treatment, uy, confounders, params):
         outputs=[lattice_y, lattice_y_prime])
 
     return model
+
 
 def Twin_Net(treatment, uy, confounders, params):
     lattice_sizes = params.lattice_sizes
@@ -242,8 +267,8 @@ def Twin_Net(treatment, uy, confounders, params):
             monotonicities=[
                 'increasing', params.uy_monotonicity, *params.z_monotonicity
             ],
-            output_min=0.0,
-            output_max=1.0,
+            output_min=params.target_min,
+            output_max=params.target_max,
             name='Y',
         )([a_calibrator, layer_uy, *layer_z])
 
@@ -253,8 +278,8 @@ def Twin_Net(treatment, uy, confounders, params):
             monotonicities=[
                 'increasing', params.uy_monotonicity, *params.z_monotonicity
             ],
-            output_min=0.0,
-            output_max=1.0,
+            output_min=params.target_min,
+            output_max=params.target_max,
             name='Y_prime',
         )([a_prime_calibrator, layer_uy, *layer_z])
     else:
@@ -262,9 +287,9 @@ def Twin_Net(treatment, uy, confounders, params):
 
         conc_input_prime = tf.keras.layers.Concatenate(axis=1)([a_prime_calibrator, layer_uy, *layer_z])
 
-        if params.lattice_units >1:
-            conc_input = tf.expand_dims(conc_input,1)
-            conc_input = tf.tile(conc_input, [1,2,1], name=None)
+        if params.lattice_units > 1:
+            conc_input = tf.expand_dims(conc_input, 1)
+            conc_input = tf.tile(conc_input, [1, 2, 1], name=None)
             conc_input_prime = tf.expand_dims(conc_input_prime, 1)
             conc_input_prime = tf.tile(conc_input_prime, [1, 2, 1], name=None)
 
@@ -274,7 +299,6 @@ def Twin_Net(treatment, uy, confounders, params):
             monotonicities=
             'increasing'
             ,
-
             name='Y',
         )(conc_input)
 
@@ -285,7 +309,6 @@ def Twin_Net(treatment, uy, confounders, params):
             'increasing',
             name='Y_prime',
         )(conc_input_prime)
-
 
     if params.end_activation == 'calib':
         lattice_y = tfl.layers.PWLCalibration(
@@ -321,37 +344,36 @@ def DiceBCELoss(targets, inputs, smooth=1e-6):
 
     scce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
     BCE = scce(targets, inputs)
-    dc = dice_loss(targets,inputs)
-    Dice_BCE = 0.5*BCE + 1.5*dc
+    dc = dice_loss(targets, inputs)
+    Dice_BCE = 0.5 * BCE + 1.5 * dc
 
     return Dice_BCE
 
 
 def class_loss(class_weight):
-  """Returns a loss function for a specific class weight tensor
+    """Returns a loss function for a specific class weight tensor
 
   Params:
     class_weight: 1-D constant tensor of class weights
 
   Returns:
     A loss function where each loss is scaled according to the observed class"""
-  class_weight = tf.dtypes.cast(class_weight, tf.float32)
-  # scce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-  scce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
-  def loss(y_obs, y_pred):
-    dc = dice_loss(y_obs,y_pred)
+    class_weight = tf.dtypes.cast(class_weight, tf.float32)
+    # scce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+    scce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
+    def loss(y_obs, y_pred):
+        dc = dice_loss(y_obs, y_pred)
 
-    # y_pred = tf.dtypes.cast(y_pred, tf.int32)
-    y_obs = tf.dtypes.cast(y_obs, tf.int32)
+        # y_pred = tf.dtypes.cast(y_pred, tf.int32)
+        y_obs = tf.dtypes.cast(y_obs, tf.int32)
 
-    hothot = tf.one_hot(tf.reshape(y_obs, [-1]), depth=class_weight.shape[0])
-    weight = tf.math.multiply(class_weight, hothot)
-    weight = tf.reduce_sum(weight, axis=-1)
-    losses = scce(y_obs,
-                  y_pred,
-                  sample_weight=weight)
-    return losses + dc
+        hothot = tf.one_hot(tf.reshape(y_obs, [-1]), depth=class_weight.shape[0])
+        weight = tf.math.multiply(class_weight, hothot)
+        weight = tf.reduce_sum(weight, axis=-1)
+        losses = scce(y_obs,
+                      y_pred,
+                      sample_weight=weight)
+        return losses + dc
 
-  return loss
-
+    return loss

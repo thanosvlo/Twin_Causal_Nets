@@ -8,99 +8,110 @@ import os
 import argparse
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
-from data.twin_dataset import TwinsDataset, get_subportion_confounders
-from data.twin_data_metadata import confounder_monotonicities_1, confounder_monotonicities_2
+from dataloader import ISTDataset, get_subportion_confounders,decre_monoto
+
 import pandas as pd
-from models_twins import Twin_Net_with_Z_A, dice_loss,Twin_Net
+from model_twins import Twin_Net_with_Z_A, dice_loss,Twin_Net
 from sklearn.preprocessing import MinMaxScaler
-from utils import pickle_object, read_pickle_object
+from utils import read_pickle_object,pickle_object
 import sklearn
-from calc_prob_twin_Twins import calc_probs
 from sklearn.metrics import f1_score,roc_auc_score
 from sklearn.utils import resample
 from imblearn.over_sampling import SMOTE,ADASYN
 
 def run_train(args):
 
-    dataset = TwinsDataset(**vars(args))
-    if 'prop' in args.runPath:
-        try:
-            dataset.train.drop(['propensity_score'], axis=1, inplace=True)
-            dataset.test.drop(['propensity_score'], axis=1, inplace=True)
-        except:
-            print('Not Propensity matched')
+    dataset = ISTDataset(**vars(args))
+    dataset.train.drop(['Unnamed: 0'], axis=1, inplace=True)
+    dataset.test.drop(['Unnamed: 0'], axis=1, inplace=True)
+    try:
+        dataset.train.drop(['propensity_score'], axis=1, inplace=True)
+        dataset.test.drop(['propensity_score'], axis=1, inplace=True)
+    except:
+        print('Not Propensity matched')
 
 
     if args.oversample:
-        y = dataset.train['Y']
-
-        dataset_proc = dataset.train.drop(['Y'], axis=1, inplace=False)
-
-        smote = SMOTE()
-
-        x_sm, y_sm = smote.fit_resample(dataset_proc, y)
-        x_sm.insert(0,'Y',y_sm)
-        scaler = MinMaxScaler()
-        x_sm['Y_prime'] = scaler.fit_transform(x_sm['Y_prime'].values[...,np.newaxis])
-        x_sm['Y_prime'].loc[x_sm['Y_prime']>=0.5] = 1
-        x_sm['Y_prime'].loc[x_sm['Y_prime']<0.5] = 0
-        y_2 = x_sm['Y_prime']
-        x_sm.drop(['Y_prime'], axis=1, inplace=True)
-        x_sm_2, y_sm_2 = smote.fit_resample(x_sm, y_2)
-        x_sm_2.insert(0,'Y_prime',y_sm_2)
-        x_sm_2['Y'].loc[x_sm_2['Y'] >= 0.5] = 1
-        x_sm_2['Y'].loc[x_sm_2['Y'] < 0.5] = 0
-        x_sm_2['X'].loc[x_sm_2['X'] >= 0.5] = 1
-        x_sm_2['X'].loc[x_sm_2['X'] < 0.5] = 0
-        x_sm_2['X_prime'].loc[x_sm_2['X_prime'] >= 0.5] = 1
-        x_sm_2['X_prime'].loc[x_sm_2['X_prime'] < 0.5] = 0
-        dataset.train = x_sm_2
-
-        y = dataset.test['Y']
-
-        dataset_proc = dataset.test.drop(['Y'], axis=1, inplace=False)
-
-
-
-        x_sm, y_sm = smote.fit_resample(dataset_proc, y)
-        x_sm.insert(0, 'Y', y_sm)
-        scaler = MinMaxScaler()
-        x_sm['Y_prime'] = scaler.fit_transform(x_sm['Y_prime'].values[..., np.newaxis])
-        x_sm['Y_prime'].loc[x_sm['Y_prime'] >= 0.5] = 1
-        x_sm['Y_prime'].loc[x_sm['Y_prime'] < 0.5] = 0
-        y_2 = x_sm['Y_prime']
-        x_sm.drop(['Y_prime'], axis=1, inplace=True)
-        x_sm_2, y_sm_2 = smote.fit_resample(x_sm, y_2)
-        x_sm_2.insert(0, 'Y_prime', y_sm_2)
-        x_sm_2['Y'].loc[x_sm_2['Y'] >= 0.5] = 1
-        x_sm_2['Y'].loc[x_sm_2['Y'] < 0.5] = 0
-        x_sm_2['X'].loc[x_sm_2['X'] >= 0.5] = 1
-        x_sm_2['X'].loc[x_sm_2['X'] < 0.5] = 0
-        x_sm_2['X_prime'].loc[x_sm_2['X_prime'] >= 0.5] = 1
-        x_sm_2['X_prime'].loc[x_sm_2['X_prime'] < 0.5] = 0
-        dataset.test = x_sm_2
+        raise NotImplementedError
+        # y = dataset.train[args.outcome]
+        #
+        # dataset_proc = dataset.train.drop([args.outcome], axis=1, inplace=False)
+        #
+        # smote = SMOTE()
+        #
+        # x_sm, y_sm = smote.fit_resample(dataset_proc, y)
+        # x_sm.insert(0,args.outcome,y_sm)
+        # scaler = MinMaxScaler()
+        # x_sm['{}_prime'.format(args.outcome)] = scaler.fit_transform(x_sm['{}_prime'.format(args.outcome)].values[...,np.newaxis])
+        # x_sm['{}_prime'.format(args.outcome)].loc[x_sm['{}_prime'.format(args.outcome)]>=0.5] = 1
+        # x_sm['{}_prime'.format(args.outcome)].loc[x_sm['{}_prime'.format(args.outcome)]<0.5] = 0
+        # y_2 = x_sm['{}_prime'.format(args.outcome)]
+        # x_sm.drop(['{}_prime'.format(args.outcome)], axis=1, inplace=True)
+        # x_sm_2, y_sm_2 = smote.fit_resample(x_sm, y_2)
+        # x_sm_2.insert(0,'{}_prime'.format(args.outcome),y_sm_2)
+        # x_sm_2[args.outcome].loc[x_sm_2[args.outcome] >= 0.5] = 1
+        # x_sm_2[args.outcome].loc[x_sm_2[args.outcome] < 0.5] = 0
+        # x_sm_2['X'].loc[x_sm_2['X'] >= 0.5] = 1
+        # x_sm_2['X'].loc[x_sm_2['X'] < 0.5] = 0
+        # x_sm_2['X_prime'].loc[x_sm_2['X_prime'] >= 0.5] = 1
+        # x_sm_2['X_prime'].loc[x_sm_2['X_prime'] < 0.5] = 0
+        # dataset.train = x_sm_2
+        #
+        # y = dataset.test[args.outcome]
+        #
+        # dataset_proc = dataset.test.drop([args.outcome], axis=1, inplace=False)
+        #
+        #
+        #
+        # x_sm, y_sm = smote.fit_resample(dataset_proc, y)
+        # x_sm.insert(0, 'Y', y_sm)
+        # scaler = MinMaxScaler()
+        # x_sm['Y_prime'] = scaler.fit_transform(x_sm['Y_prime'].values[..., np.newaxis])
+        # x_sm['Y_prime'].loc[x_sm['Y_prime'] >= 0.5] = 1
+        # x_sm['Y_prime'].loc[x_sm['Y_prime'] < 0.5] = 0
+        # y_2 = x_sm['Y_prime']
+        # x_sm.drop(['Y_prime'], axis=1, inplace=True)
+        # x_sm_2, y_sm_2 = smote.fit_resample(x_sm, y_2)
+        # x_sm_2.insert(0, 'Y_prime', y_sm_2)
+        # x_sm_2['Y'].loc[x_sm_2['Y'] >= 0.5] = 1
+        # x_sm_2['Y'].loc[x_sm_2['Y'] < 0.5] = 0
+        # x_sm_2['X'].loc[x_sm_2['X'] >= 0.5] = 1
+        # x_sm_2['X'].loc[x_sm_2['X'] < 0.5] = 0
+        # x_sm_2['X_prime'].loc[x_sm_2['X_prime'] >= 0.5] = 1
+        # x_sm_2['X_prime'].loc[x_sm_2['X_prime'] < 0.5] = 0
+        # dataset.test = x_sm_2
 
     elif args.undersample:
-        neg_ = dataset.train[(dataset.train['Y'] == 0) | (dataset.train['Y_prime'] == 0)]
-        pos_ = dataset.train[(dataset.train['Y'] == 1) | (dataset.train['Y_prime'] == 1)]
-        ids = len(neg_)
-        choices = np.random.choice(ids, len(pos_))
-        res_neg_features = neg_.iloc[choices]
-        dataset.train = pd.concat([res_neg_features, pos_], axis=0)
+        raise NotImplementedError
+        # neg_ = dataset.train[(dataset.train['Y'] == 0) | (dataset.train['Y_prime'] == 0)]
+        # pos_ = dataset.train[(dataset.train['Y'] == 1) | (dataset.train['Y_prime'] == 1)]
+        # ids = len(neg_)
+        # choices = np.random.choice(ids, len(pos_))
+        # res_neg_features = neg_.iloc[choices]
+        # dataset.train = pd.concat([res_neg_features, pos_], axis=0)
 
-    target = dataset.train.pop('Y')
-    target_prime = dataset.train.pop('Y_prime')
-    treatment = dataset.train.pop('X')
-    treatment_prime = dataset.train.pop('X_prime')
+    target = dataset.train.pop(args.outcome)
+    target_prime = dataset.train.pop('{}_prime'.format(args.outcome))
+    treatment = dataset.train.pop(args.treatment)
+    treatment_prime = dataset.train.pop('{}_prime'.format(args.treatment))
     uy = dataset.train.pop('Uy')
+
+    args.target_max = target.values.max()
+    args.target_min = target.values.min()
 
     dataset.test = dataset.test.reset_index().drop(['index'],axis=1)
 
-    target_test = dataset.test.pop('Y')
-    target_prime_test = dataset.test.pop('Y_prime')
-    treatment_test = dataset.test.pop('X')
-    treatment_prime_test = dataset.test.pop('X_prime')
+    target_test = dataset.test.pop('{}'.format(args.outcome))
+    target_prime_test = dataset.test.pop('{}_prime'.format(args.outcome))
+    treatment_test = dataset.test.pop('{}'.format(args.treatment))
+    treatment_prime_test = dataset.test.pop('{}_prime'.format(args.treatment))
     uy_test = dataset.test.pop('Uy')
+
+    if args.cat_treat:
+        treatment = treatment.astype(int)
+        treatment_prime = treatment_prime.astype(int)
+        treatment_test = treatment_test.astype(int)
+        treatment_prime_test = treatment_prime_test.astype(int)
 
     # Get confounders
 
@@ -116,18 +127,23 @@ def run_train(args):
 
         args.z_monotonicity_latice = []
         for i, col in enumerate(dataset.train.columns):
-            args.z_monotonicity.append(args.z_monotonicity_base[col])
+
+            if col in decre_monoto and args.z_monotonicity_base!=0:
+                args.z_monotonicity.append(0)
+            else:
+                args.z_monotonicity.append(args.z_monotonicity_base)
+
 
             args.lattice_sizes.append(args.z_calib_units)
 
     else:
-        input_len = 3
+
         args.z_monotonicity = [args.z_monotonicity]
         args.lattice_sizes.append(args.len_conf)
 
     # Define Model
 
-    if 'azlink' not in args.runPath:
+    if 'azlink' not in args.architecture:
         model = Twin_Net(treatment, uy, dataset.train, args)
     else:
         model = Twin_Net_with_Z_A(treatment, uy, dataset.train, args)
@@ -156,7 +172,7 @@ def run_train(args):
 
         optimizer = tf.keras.optimizers.Adagrad(learning_rate=lr_schedule)
     else:
-        optimizer = tf.keras.optimizers.Adagrad(learning_rate=args.lr)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr)
 
     if args.weighted_loss:
         model.compile(
@@ -205,6 +221,7 @@ def run_train(args):
 
 
     model.load_weights(args.runPath + '/best')
+    # model.save(args.runPath + '/best_model.tf')
 
     conf_to_input = [dataset.test.values.astype(np.float32)]
     if args.multiple_confounders:
@@ -228,19 +245,18 @@ def run_train(args):
         scaler = MinMaxScaler()
         pred = scaler.fit_transform(pred)
 
+        pred = np.digitize(pred, np.arange(pred.min(),pred.max(),(pred.max() - pred.min())/args.bins), right=False) - 1
 
-        pred[pred >= 0.5] = 1
-        pred[pred < 0.5] = 0
         ac = accuracy_score(pred, gt)
         print('{} Acc: {}'.format(title[i], ac))
-        f1 = f1_score(gt.values, pred)
+        f1 = f1_score(gt.values, pred,average='macro')
         print('{} F1 : {}'.format(title[i], f1))
-        auc_r = roc_auc_score(gt.values, pred)
-        print('{} AUC-ROC : {}'.format(title[i], auc_r))
+        # auc_r = roc_auc_score(gt.values, pred)
+        # print('{} AUC-ROC : {}'.format(title[i], auc_r))
 
 
 
-    calc_probs(args, treatment_test, dataset, model)
+    # calc_probs(args, treatment_test, dataset, model)
 
 
 if __name__ == '__main__':
@@ -251,39 +267,56 @@ if __name__ == '__main__':
                         default='')
     # Logging
     parser.add_argument('--restore', type=bool, default=False)
-    parser.add_argument('--log_root', type=str, default='./experiments/Twins/')
+    parser.add_argument('--log_root', type=str, default='./experiments/Stroke_treat_{}_outcome_{}/')
     parser.add_argument('--name', type=str,
-                        default='twin_net_arch_{}_{}_uy_{}_uy_monotonicity_{}_z_monoton_{}_z_layer_{}_calib_units_{}_z_{}_lr_{}_loss_{}_Twins_{}_confounders_{}_ganite_2000')
+                        default='dev')
+                        # default='twin_net_arch_{}_{}_uy_{}_uy_monot_{}_z_monot_{}_z_layer_{}_calib_units_{}_z_{}_lr_{}_loss_{}_Stroke_heparin_{}_confounders_{}')
+
 
     # Dataset Hparams
-    parser.add_argument('--save_path', default='./data/Datasets/')
-    parser.add_argument('--save_name', default='')
-    parser.add_argument('--save_dataset', default=False)
-    parser.add_argument('--load_dataset', default=True)
-    parser.add_argument('--dataset_mode', type=str, default='synthetic')
-    parser.add_argument('--path_to_data',
+    parser.add_argument('--path_to_data', type=str, default='../Data/DS_10283_124/stroke_data_treatment_{}_outcome_{}_{}.csv')
+    parser.add_argument('--load_dataset', type=bool, default=True)
+    parser.add_argument('--save_dataset', type=bool, default=False)
+    parser.add_argument('--save_path', type=str, default='../Data/DS_10283_124/')
+    parser.add_argument('--save_name', type=str, default='stroke_data_treatment_{}_outcome_{}_{}.csv')
+    parser.add_argument('--n_samples', type=int, default=1000)
+    parser.add_argument('--neighb', type=int, default=50)
+    parser.add_argument('--propensity_score', type=bool, default=False)
+    parser.add_argument('--treatment', type=str, default='Heparin')
+    parser.add_argument('--outcome', type=str, default='Y_3')
 
-                        default='../data/Datasets/ganite_twins_uy_normal_twins.pkl')
 
     parser.add_argument('--confounders', default=['all'])
+    parser.add_argument('--multiple_confounders', default=True, help='split confounders')
+    parser.add_argument('--bins', default=4, help='quantization bins of outcome')
+
     parser.add_argument('--u_distribution', default='normal')
     parser.add_argument('--oversample',type=bool, default=False)
     parser.add_argument('--undersample',type=bool, default=False)
     # Model Hparams
-    parser.add_argument('--lattice_sizes', default=[3,3])
+    parser.add_argument('--architecture', default='azlink')
+    parser.add_argument('--cat_treat', default=False)
+    parser.add_argument('--cat_buckets', default=5)
+    parser.add_argument('--treat_monot', default=[(0,1),(0,3),(0,4),
+                                                  (1,3),(1,4),
+                                                  (2,0),(2,1),(2,3),(2,4),
+                                                  (3,4)])
+
+    parser.add_argument('--lattice_sizes', default=[4,4])
     parser.add_argument('--epochs', type=int, default=2000)
     parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--lattice_units', type=int, default=1)  # 1 or 2
-    parser.add_argument('--hidden_dims', type=int, default=3)
-    parser.add_argument('--calib_units', type=int, default=3)
-    parser.add_argument('--z_calib_units', type=int, default=3)
+    parser.add_argument('--lattice_units', type=int, default=1)
+    parser.add_argument('--treat_calib_units', type=int, default=4)
+    parser.add_argument('--uy_hidden_dims', type=int, default=4)
+    parser.add_argument('--z_calib_units', type=int, default=4)
     parser.add_argument('--layer', default='lattice')
     parser.add_argument('--uy_layer', default='none')
     parser.add_argument('--z_layer', default='none')
+    parser.add_argument('--treat_monotonicity', default='increasing')
     parser.add_argument('--uy_monotonicity', default='none')
     parser.add_argument('--z_monotonicity', default='none')
     parser.add_argument('--z_monotonicity_latice', default='same', help='4 or same')
-    parser.add_argument('--concats', type=bool,default=False)
+    parser.add_argument('--concats', type=bool,default=True)
 
     parser.add_argument('--z_monot_opt', type=int, default=1)
     parser.add_argument('--end_activation', default='none')
@@ -295,10 +328,9 @@ if __name__ == '__main__':
     parser.add_argument('--weighted_loss',default=False)
     parser.add_argument('--weight_1',type=float,default=0.75)
     parser.add_argument('--weight_2',type=float,default=1.75)
-    parser.add_argument('--multiple_confounders', default=False, help='split confounders')
 
     # General
-    parser.add_argument('--seed', type=int, default=42, metavar='S', help='random seed (default: 1)')
+    parser.add_argument('--seed', type=int, default=42, metavar='S', help='random seed')
     parser.add_argument('--gpu', type=str, default='0')
     parser.add_argument('--workers', type=int, default=0)
     args = parser.parse_args()
@@ -307,6 +339,7 @@ if __name__ == '__main__':
     os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # see issue #152
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
+    args.log_root = args.log_root.format(args.treatment.replace('-', '_'), args.outcome, )
     # Set Randomness
     if args.seed == 0: args.seed = int(np.random.randint(0, 2 ** 32 - 1, (1,)))
     print('seed', args.seed)
@@ -314,6 +347,9 @@ if __name__ == '__main__':
     tf.random.set_seed(args.seed)
 
     # Set logdirs
+
+    args.path_to_data = args.path_to_data.format(args.treatment.replace('-', '_'), args.outcome,  '{}')
+
 
     lr_log = str(args.lr).replace('.', '_')
     lr_log = '{}_scheduled'.format(lr_log) if args.lr_schedule else lr_log
@@ -325,11 +361,14 @@ if __name__ == '__main__':
     if args.multiple_confounders:
 
         z_monotonicity = 'opt_{}'.format(args.z_monot_opt)
-        args.z_monotonicity_base = eval('confounder_monotonicities_{}'.format(args.z_monot_opt))
+        if args.z_monot_opt == 1:
+            args.z_monotonicity_base = 0
+        else:
+            args.z_monotonicity_base = 1
 
     else:
         z_monotonicity = args.z_monotonicity
-        args.z_calib_units = len(args.confounders) if 'all' not in args.confounders else 30#20#52# 20#19
+        args.z_calib_units = len(args.confounders) if 'all' not in args.confounders else 4
 
     if args.oversample:
         oversample = '_oversampled'
@@ -342,15 +381,23 @@ if __name__ == '__main__':
     else:
         loss = args.loss
     conf_to_print = '{}_confs'.format(len(args.confounders)) if 'all' not in args.confounders else 'all'
-    calib_units = '{}_{}'.format(args.calib_units,args.hidden_dims)
+    calib_units = '{}_{}'.format(args.treat_calib_units,args.uy_hidden_dims)
+    if not args.concats :
+        conc = ''
+    else:
+        conc = '_concat'
+    if args.cat_treat:
+        cat_calib = '_categoric_treat_calib'
+    else:
+        cat_calib = ''
+    layer = '{}_{}{}{}_treat_monot_{}'.format(args.architecture,args.layer,conc,cat_calib,args.treat_monotonicity)
 
-    layer = '{}_{}'.format(args.layer,'concat') if args.concats else args.layer
+
 
     args.name = args.name.format(layer, args.end_activation, args.uy_layer, args.uy_monotonicity, z_monotonicity,
                                  z_layer,
                                  calib_units, args.z_calib_units, lr_log, loss, oversample,
                                  conf_to_print)
-    args.path_to_data = args.load_path = args.path_to_data.format(args.u_distribution)
 
     if args.train:
         if not os.path.exists(args.log_root):

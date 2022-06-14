@@ -11,7 +11,7 @@ Conference
 </div>
  
 ## Description   
-This repo contains the supporting code for the paper: "Estimating the Probabilities of Causation with Deep Monotonic Twin Networks"
+This repo contains the supporting code for the paper: "Estimating Categorical Counterfactuals via Deep Twin Networks"
 by : Athanasios Vlontzos, Bernhard Kainz, Ciaran Gilligan-Lee
 
 
@@ -55,7 +55,7 @@ https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi%3A10.7910/DVN/28063
 ```
 ## Hparams 
 
-Synthetic wt confounders:
+### Synthetic wt confounders:
 ```python
     parser.add_argument('--confounders',default=['Z'])
 
@@ -90,7 +90,7 @@ Synthetic wt confounders:
 
 ```
 
-Synthetic unconfounded
+### Synthetic unconfounded
 
 ```python
      parser.add_argument('--u_distribution', default='uniform', help='normal, uniform')
@@ -111,7 +111,7 @@ Synthetic unconfounded
 
 ```
 
-Kenyan Water
+### Kenyan Water
 
 ```python
     
@@ -141,7 +141,7 @@ Kenyan Water
 
 ```
 
-Twins Dataset
+### Twins Dataset
 
 ```python
     
@@ -175,11 +175,22 @@ Twins Dataset
     parser.add_argument('--multiple_confounders', default=False, help='split confounders')
 ```
 
+## Categorical Datasets 
+
+### Stroke and Credit
+
+- Download 
+  - [International Stroke Trial Dataset](https://datashare.ed.ac.uk/handle/10283/124)
+  - [German Credit Score Dataset](https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data))
+
+- Create the datasets by running the dataloader scripts 
+- Run with default hparams 
+
 ## Citation
 
 ``` 
 @article{vlontzos2021estimating,
-  title={Estimating the probabilities of causation via deep monotonic twin networks},
+  title={Estimating Categorical Counterfactuals via Deep Twin Networks},
   author={Vlontzos, Athanasios and Kainz, Bernhard and Gilligan-Lee, Ciaran M},
   journal={arXiv preprint arXiv:2109.01904},
   year={2021}
