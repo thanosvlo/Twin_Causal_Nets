@@ -9,9 +9,7 @@ import argparse
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
 from data.twin_dataset import TwinsDataset, get_subportion_confounders
-from data.twin_data_metadata import confounder_monotonicities_1, confounder_monotonicities_2
 
-import pandas as pd
 from models_twins import Twin_Net_with_Z_A, dice_loss,Twin_Net,class_loss
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import f1_score, roc_auc_score

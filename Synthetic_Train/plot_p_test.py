@@ -1,7 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from utils import pickle_object, read_pickle_object
+import numpy as np
 
+from utils import read_pickle_object
 
 data =read_pickle_object('./experiments/p_test.npz')
 

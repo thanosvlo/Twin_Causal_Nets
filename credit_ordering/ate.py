@@ -1,17 +1,10 @@
-import copy
-
 import numpy as np
 import argparse
-from dataloader import GermanCreditDataset, get_subportion_confounders
+from dataloader import GermanCreditDataset
 import pandas as pd
 import itertools
 from collections import defaultdict
-from utils import pickle_object
-import os
-from causalml.inference.meta import XGBTRegressor, MLPTRegressor
-import copy
 from prettytable import PrettyTable
-import plotly.graph_objs as go
 import matplotlib.pyplot as plt
 import matplotlib
 

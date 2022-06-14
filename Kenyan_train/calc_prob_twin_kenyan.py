@@ -8,10 +8,8 @@ import os
 import argparse
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
-from data.kenyan_water_dataset import KenyanWaterDataset, get_subportion_confounders, confounder_monotonicities_3, \
-    confounder_monotonicities_2, confounder_monotonicities_1
+from data.kenyan_water_dataset import KenyanWaterDataset, get_subportion_confounders
 from data.kenyan_water_dataset import median_child_paper, median_child
-import pandas as pd
 from models_kenyan import Twin_Net_Kenyan, Twin_Net_Kenyan_with_Z_A
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import f1_score

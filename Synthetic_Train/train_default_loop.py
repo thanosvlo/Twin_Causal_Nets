@@ -10,7 +10,7 @@ from sklearn.metrics import accuracy_score
 import tensorflow as tf
 from data.synthetic_dataset import SyntheticDataset
 import pandas as pd
-from models import TwinNet, SingleTwinNet, custom_loss
+from models import TwinNet, custom_loss
 
 
 def run_train(args):

@@ -9,16 +9,14 @@ import argparse
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
 from data.twin_dataset import TwinsDataset, get_subportion_confounders
-from data.twin_data_metadata import confounder_monotonicities_1, confounder_monotonicities_2
 import pandas as pd
 from models_twins import Twin_Net_with_Z_A, dice_loss,Twin_Net
 from sklearn.preprocessing import MinMaxScaler
-from utils import pickle_object, read_pickle_object
-import sklearn
+from utils import pickle_object
 from calc_prob_twin_Twins import calc_probs
 from sklearn.metrics import f1_score,roc_auc_score
-from sklearn.utils import resample
-from imblearn.over_sampling import SMOTE,ADASYN
+from imblearn.over_sampling import SMOTE
+
 
 def run_train(args):
 

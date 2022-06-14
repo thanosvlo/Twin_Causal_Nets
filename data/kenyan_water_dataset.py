@@ -4,12 +4,9 @@ sys.path.append(".")
 sys.path.append("..")
 import numpy as np
 import os
-import sklearn
 from sklearn.model_selection import train_test_split
 from utils import pickle_object, read_pickle_object
-from collections import defaultdict
 import pandas as pd
-import glob
 
 confounder_monotonicities_4 = {'c13_c_child_gender': 'none',  # gender
                                'base_age': 'decreasing',  # age at baseline

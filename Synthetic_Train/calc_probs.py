@@ -10,9 +10,8 @@ from sklearn.metrics import accuracy_score
 import tensorflow as tf
 from data.synthetic_dataset import SyntheticDataset
 import pandas as pd
-from models import SingleNet, TwinNet, SingleTwinNet, custom_loss
+from models import TwinNet, custom_loss
 from sklearn.preprocessing import MinMaxScaler
-from utils import pickle_object, read_pickle_object
 
 
 def run_inference(args):

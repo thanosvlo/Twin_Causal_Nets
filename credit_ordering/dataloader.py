@@ -1,19 +1,18 @@
+import sys
+
 import numpy as np
 import os
-import glob
 import pandas as pd
-import sys
-from sklearn import preprocessing
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn import metrics
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.neighbors import NearestNeighbors
-from tqdm import tqdm
+
 sys.path.append("..")
 sys.path.append("../..")
 import argparse
 from copy import deepcopy
 from sklearn.model_selection import train_test_split
-from german_metadata import categories_to_numerical, CategoricalFeatures, decre_monoto
+from german_metadata import categories_to_numerical, decre_monoto
 from tqdm import tqdm
 import itertools
 from prettytable import PrettyTable

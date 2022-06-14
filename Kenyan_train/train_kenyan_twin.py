@@ -8,13 +8,11 @@ import os
 import argparse
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
-from data.kenyan_water_dataset import KenyanWaterDataset, get_subportion_confounders, confounder_monotonicities_4, \
-    confounder_monotonicities_2, confounder_monotonicities_1, confounder_monotonicities_3
+from data.kenyan_water_dataset import KenyanWaterDataset, get_subportion_confounders
 import pandas as pd
-from models_kenyan import Single_Twin_Net_Kenyan, dice_loss, Twin_Net_Kenyan
+from models_kenyan import dice_loss, Twin_Net_Kenyan
 from sklearn.preprocessing import MinMaxScaler
-from utils import pickle_object, read_pickle_object
-import sklearn
+from utils import pickle_object
 from calc_prob_twin_kenyan import calc_probs
 from sklearn.metrics import f1_score
 

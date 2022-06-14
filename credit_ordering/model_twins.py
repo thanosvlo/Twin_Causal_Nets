@@ -6,7 +6,6 @@ sys.path.append("../..")
 import numpy as np
 import tensorflow as tf
 import tensorflow_lattice as tfl
-from german_metadata import CategoricalFeatures, decre_monoto
 
 
 def make_cat_calibrators(input, lattice_size, conf, buckets=3, monotonicities=None):

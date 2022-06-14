@@ -4,18 +4,16 @@ sys.path.append("..")
 sys.path.append("../..")
 
 import numpy as np
-import os
 from data.synthetic_dataset_wt_conf import SyntheticDataset
 import pandas as pd
-from utils import pickle_object, read_pickle_object
+from utils import pickle_object
 
 from sklearn.neighbors import NearestNeighbors
 from sklearn import metrics
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 import math
 import copy
 from sklearn.model_selection import train_test_split
-from pymatch.Matcher import Matcher
 from tqdm import tqdm
 
 def perform_match_exact(row, df, *args):

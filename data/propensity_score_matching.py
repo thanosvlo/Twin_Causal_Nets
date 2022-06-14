@@ -4,10 +4,8 @@ sys.path.append("..")
 sys.path.append("../..")
 
 import numpy as np
-import os
-from data.kenyan_water_dataset import KenyanWaterDataset
 import pandas as pd
-from utils import pickle_object, read_pickle_object
+from utils import pickle_object
 
 from sklearn.neighbors import NearestNeighbors
 from sklearn import metrics

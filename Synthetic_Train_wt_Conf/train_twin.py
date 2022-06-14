@@ -9,12 +9,11 @@ import argparse
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
 # from data.synthetic_dataset_wt_confo_za_link_ciaran import SyntheticDataset, confounder_monotonicities_1
-from data.synthetic_dataset_wt_conf_za_link import SyntheticDataset, confounder_monotonicities_1,get_subportion_confounders
+from data.synthetic_dataset_wt_conf_za_link import SyntheticDataset, get_subportion_confounders
 import pandas as pd
-from models_synthetic import Twin_Net, dice_loss, class_loss, DiceBCELoss,Twin_Net_with_Z_A
+from models_synthetic import Twin_Net, class_loss, DiceBCELoss,Twin_Net_with_Z_A
 from sklearn.preprocessing import MinMaxScaler
-from utils import pickle_object, read_pickle_object
-import sklearn
+from utils import pickle_object
 from calc_prob_synthetic_conf import calc_probs
 from sklearn.metrics import f1_score
 from imblearn.over_sampling import SMOTE

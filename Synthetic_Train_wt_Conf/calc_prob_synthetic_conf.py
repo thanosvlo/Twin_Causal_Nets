@@ -9,13 +9,13 @@ import argparse
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
 
-from data.synthetic_dataset_wt_conf_za_link import SyntheticDataset, confounder_monotonicities_1,get_subportion_confounders
+from data.synthetic_dataset_wt_conf_za_link import SyntheticDataset, get_subportion_confounders
 import pandas as pd
 from models_synthetic import Twin_Net_with_Z_A, dice_loss,Twin_Net,class_loss
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import f1_score
 import copy
-from utils import pickle_object, read_pickle_object
+from utils import pickle_object
 
 
 def get_test_confs(dataset, args, N=None, mode='test'):

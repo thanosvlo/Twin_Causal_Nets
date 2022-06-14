@@ -4,14 +4,13 @@ sys.path.append("..")
 sys.path.append("../..")
 
 import numpy as np
-import os
-from data.twin_dataset import TwinsDataset, get_subportion_confounders
+from data.twin_dataset import TwinsDataset
 import pandas as pd
-from utils import pickle_object, read_pickle_object
+from utils import pickle_object
 
 from sklearn.neighbors import NearestNeighbors
 from sklearn import metrics
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 import math
 import copy
 from sklearn.model_selection import train_test_split

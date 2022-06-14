@@ -10,15 +10,13 @@ from sklearn.metrics import accuracy_score
 import tensorflow as tf
 from dataloader import GermanCreditDataset, get_subportion_confounders
 from german_metadata import decre_monoto
-import pandas as pd
 from model_twins import Twin_Net_with_Z_A, dice_loss,Twin_Net,multi_class_twin_za
 from sklearn.preprocessing import MinMaxScaler
 from utils import read_pickle_object,pickle_object
 import sklearn
-from calc_probs import calc_probs
-from sklearn.metrics import f1_score,roc_auc_score
+from sklearn.metrics import f1_score
 from sklearn.utils import resample
-from imblearn.over_sampling import SMOTE,ADASYN
+
 
 def run_train(args):
 

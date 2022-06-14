@@ -1,4 +1,3 @@
-import random
 import sys
 
 sys.path.append("..")
@@ -12,14 +11,11 @@ import tensorflow as tf
 from dataloader import ISTDataset, get_subportion_confounders, decre_monoto
 import itertools
 
-import pandas as pd
 from model_twins import Twin_Net_with_Z_A, dice_loss,Twin_Net
 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import f1_score, roc_auc_score
+from sklearn.metrics import f1_score
 import copy
-from imblearn.over_sampling import SMOTE
-import random
 from utils import pickle_object,read_pickle_object
 from collections import defaultdict
 from tabulate import tabulate

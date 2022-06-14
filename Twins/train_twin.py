@@ -9,12 +9,10 @@ import argparse
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
 from data.twin_dataset import TwinsDataset, get_subportion_confounders
-from data.twin_data_metadata import confounder_monotonicities_1, confounder_monotonicities_2
 import pandas as pd
-from models_twins import Twin_Net, dice_loss, class_loss, DiceBCELoss
+from models_twins import Twin_Net, class_loss, DiceBCELoss
 from sklearn.preprocessing import MinMaxScaler
-from utils import pickle_object, read_pickle_object
-import sklearn
+from utils import pickle_object
 from calc_prob_twin_Twins import calc_probs
 from sklearn.metrics import f1_score
 

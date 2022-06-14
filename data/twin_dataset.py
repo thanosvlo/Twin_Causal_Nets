@@ -4,14 +4,10 @@ sys.path.append(".")
 sys.path.append("..")
 import numpy as np
 import os
-import sklearn
 from sklearn.model_selection import train_test_split
 from utils import pickle_object, read_pickle_object
-from collections import defaultdict
 import pandas as pd
-import glob
-import json
-from data.twin_data_metadata import cov_description, cov_types
+from data.twin_data_metadata import cov_description
 import copy
 from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import MinMaxScaler

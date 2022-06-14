@@ -6,7 +6,6 @@ sys.path.append("../..")
 import numpy as np
 import tensorflow as tf
 import tensorflow_lattice as tfl
-from data.twin_data_metadata import cov_types
 
 
 def make_cat_calibrators(input, lattice_size, conf):
